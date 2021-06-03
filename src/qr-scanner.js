@@ -326,7 +326,11 @@ export default class QrScanner {
                 return;
             }
             this._qrEnginePromise
-                .then((qrEngine) => QrScanner.scanImage(this.$video, this._scanRegion, qrEngine, this.$canvas))
+                .then( qrEngine => {
+                    QrScanner.scanImage(this.$video, this._scanRegion, qrEngine, this.$canvas);
+                    console.log("Whatever --> " + qrEngine.toString());
+                })
+                /*
                 .then(this._onDecode, (error) => {
                     if (!this._active) return;
                     const errorMessage = error.message || error;
@@ -336,6 +340,7 @@ export default class QrScanner {
                     }
                     this._onDecodeError(error);
                 })
+                */
                 .then(() => this._scanFrame());
         });
     }
