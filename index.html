@@ -52,6 +52,9 @@
 <b>Last detected at: </b>
 <span id="cam-qr-result-timestamp"></span>
 <br>
+<b>Location: </b>
+<span id="location"></span>
+<br>
 <button id="start-button">Start</button>
 <button id="stop-button">Stop</button>
 <hr>
@@ -62,7 +65,7 @@
 <span id="file-qr-result">None</span>
 
 <script type="module">
-    import QrScanner from "../qr-scanner.min.js";
+    import QrScanner from "./qr-scanner.min.js";
     QrScanner.WORKER_PATH = '../qr-scanner-worker.min.js';
 
     const video = document.getElementById('qr-video');
@@ -71,12 +74,22 @@
     const flashToggle = document.getElementById('flash-toggle');
     const flashState = document.getElementById('flash-state');
     const camQrResult = document.getElementById('cam-qr-result');
+    const locationElement = document.getElementById('location');
     const camQrResultTimestamp = document.getElementById('cam-qr-result-timestamp');
     const fileSelector = document.getElementById('file-selector');
     const fileQrResult = document.getElementById('file-qr-result');
 
-    function setResult(label, result) {
-        label.textContent = result;
+    function setResult(label, result, locationElement) {
+        label.textContent = result.data;
+        locationElement.textContent =
+            ' TopRightCorner X: ' + result.location.topRightCorner.x +
+            ' TopRightCorner Y: ' + result.location.topRightCorner.y +
+            ' TopLeftCorner X: ' + result.location.topLeftCorner.x +
+            ' TopLeftCorner Y: ' + result.location.topLeftCorner.y +
+            ' BottomRightCorner X: ' + result.location.bottomRightCorner.x +
+            ' BottomRightCorner Y: ' + result.location.bottomRightCorner.y +
+            ' BottomLeftCorner X: ' + result.location.bottomLeftCorner.x +
+            ' BottomLeftCorner Y: ' + result.location.bottomLeftCorner.y;
         camQrResultTimestamp.textContent = new Date().toString();
         label.style.color = 'teal';
         clearTimeout(label.highlightTimeout);
@@ -87,7 +100,7 @@
 
     QrScanner.hasCamera().then(hasCamera => camHasCamera.textContent = hasCamera);
 
-    const scanner = new QrScanner(video, result => setResult(camQrResult, result), error => {
+    const scanner = new QrScanner(video, result => setResult(camQrResult, result, locationElement), error => {
         camQrResult.textContent = error;
         camQrResult.style.color = 'inherit';
     });

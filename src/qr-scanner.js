@@ -9,7 +9,6 @@ export default class QrScanner {
             .then(devices => devices.some(device => device.kind === 'videoinput'))
             .catch(() => false);
     }
-
     constructor(
         video,
         onDecode,
@@ -87,22 +86,22 @@ export default class QrScanner {
     }
 
     isFlashOn() {
-      return this._flashOn;
+        return this._flashOn;
     }
 
     /* async */
     toggleFlash() {
-      return this._setFlash(!this._flashOn);
+        return this._setFlash(!this._flashOn);
     }
 
     /* async */
     turnFlashOff() {
-      return this._setFlash(false);
+        return this._setFlash(false);
     }
 
     /* async */
     turnFlashOn() {
-      return this._setFlash(true);
+        return this._setFlash(true);
     }
 
     destroy() {
@@ -193,7 +192,7 @@ export default class QrScanner {
         ]).then(([engine, image]) => {
             qrEngine = engine;
             let canvasContext;
-            [canvas, canvasContext] = this._drawToCanvas(image, scanRegion, canvas, fixedCanvasSize);
+             [canvas, canvasContext] = this._drawToCanvas(image, scanRegion, canvas, fixedCanvasSize, this.location);
 
             if (qrEngine instanceof Worker) {
                 if (!gotExternalWorker) {
@@ -210,7 +209,8 @@ export default class QrScanner {
                         qrEngine.removeEventListener('error', onError);
                         clearTimeout(timeout);
                         if (event.data.data !== null) {
-                            resolve(event.data.data);
+                            this.location = event.data.location;
+                            resolve(event.data);
                         } else {
                             reject(QrScanner.NO_QR_CODE_FOUND);
                         }
@@ -326,11 +326,7 @@ export default class QrScanner {
                 return;
             }
             this._qrEnginePromise
-                .then( qrEngine => {
-                    QrScanner.scanImage(this.$video, this._scanRegion, qrEngine, this.$canvas);
-                    console.log("Whatever --> " + qrEngine.toString());
-                })
-                /*
+                .then( (qrEngine) => QrScanner.scanImage(this.$video, this._scanRegion, qrEngine, this.$canvas) )
                 .then(this._onDecode, (error) => {
                     if (!this._active) return;
                     const errorMessage = error.message || error;
@@ -340,8 +336,9 @@ export default class QrScanner {
                     }
                     this._onDecodeError(error);
                 })
-                */
-                .then(() => this._scanFrame());
+                .then(() => {
+                    this._scanFrame()
+                });
         });
     }
 
@@ -404,7 +401,8 @@ export default class QrScanner {
                 : null; // unknown
     }
 
-    static _drawToCanvas(image, scanRegion=null, canvas=null, fixedCanvasSize=false) {
+    static _drawToCanvas(image, scanRegion=null, canvas=null, fixedCanvasSize=false, location) {
+        let location1 = location;
         canvas = canvas || document.createElement('canvas');
         const scanRegionX = scanRegion && scanRegion.x? scanRegion.x : 0;
         const scanRegionY = scanRegion && scanRegion.y? scanRegion.y : 0;
@@ -421,6 +419,12 @@ export default class QrScanner {
             scanRegionX, scanRegionY, scanRegionWidth, scanRegionHeight,
             0, 0, canvas.width, canvas.height
         );
+        if (location1 !== undefined) {
+            context.beginPath();
+            context.strokeStyle = 'green';
+            context.rect(location1.topLeftCorner.x, location1.topLeftCorner.y, location1.topRightCorner.x - location1.topLeftCorner.x, location1.bottomLeftCorner.y - location1.topLeftCorner.y);
+            context.stroke();
+        }
         return [canvas, context];
     }
 

@@ -38,10 +38,14 @@ function decode(data) {
         inversionAttempts: inversionAttempts,
         greyScaleWeights: grayscaleWeights,
     });
+    if (result !== null) {
+        console.log('Result worker --> ' + JSON.stringify(result));
+    }
     self.postMessage({
         type: 'qrResult',
         data: result? result.data : null,
-    });
+        location: result? result.location : null,
+});
 }
 
 function setGrayscaleWeights(data) {
